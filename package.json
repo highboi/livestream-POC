@@ -1,0 +1,25 @@
+{
+  "name": "livestreampoc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/highboi/livestream-POC.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/highboi/livestream-POC/issues"
+  },
+  "homepage": "https://github.com/highboi/livestream-POC#readme",
+  "dependencies": {
+    "ejs": "^3.1.5",
+    "express": "^4.17.1",
+    "nodemon": "^2.0.4",
+    "ws": "^7.3.1"
+  }
+}
