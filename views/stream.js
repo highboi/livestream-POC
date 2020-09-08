@@ -36,6 +36,7 @@ function sendVideoChunks(event) {
 //add a video stream to the html document
 function addVideoStream(video, stream) {
     video.srcObject = stream;
+	console.log(stream);
 
     video.addEventListener("loadeddata", () => {
         video.play();

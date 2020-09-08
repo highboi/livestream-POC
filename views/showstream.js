@@ -8,25 +8,14 @@ socket.onopen = (e) => {
 socket.onmessage = async (event) => {
     console.log("Message from server:");
 
-    var reader = event.data.stream().getReader();
-    var rawData;
+    var type = "video/webm; codecs=\"vp8, opus\"";
+    var blobObj = new Blob([event.data], {'type': type});
+    console.log(blobObj);
 
-	//have tried by calling .arrayBuffer() and .text() methods on event.data and then creating a blob, but nothing works
-    reader.read().then(({done, value}) => {
-        rawData = value;
-
-		//if the data is not a blank piece of video
-        if (typeof rawData != 'undefined') {
-            var type = "video/webm; codecs=\"vp8, opus\"";
-            var blobObj = new Blob([rawData], {type: type});
-            console.log(blobObj);
-
-            var streamChunk = window.URL.createObjectURL(blobObj);
-            console.log(streamChunk);
-            livestream.src = streamChunk;
-
-            window.URL.revokeObjectURL(blobObj);
-        }
-    });
+	var streamChunk = window.URL.createObjectURL(blobObj);
+	livestream.src = streamChunk;
+	livestream.addEventListener("canplay", () => {
+		livestream.play();
+	});
 };
 
