@@ -14,8 +14,5 @@ socket.onmessage = async (event) => {
 
 	var streamChunk = window.URL.createObjectURL(blobObj);
 	livestream.src = streamChunk;
-	livestream.addEventListener("canplay", () => {
-		livestream.play();
-	});
 };
 
