@@ -1,5 +1,6 @@
 const express = require("express");
 const WebSocket = require("ws");
+const fs = require("fs");
 
 const app = express();
 
@@ -23,13 +24,27 @@ app.get("/l/stream", (req, res) => {
 	var viewObj = {streamname: req.query.name};
 
 	wss.on("connection", (ws) => {
+		//create a writable stream to the mp4 file to save the live stream
+		var writeStream = fs.createWriteStream("./stream.webm");
+
 		ws.on("message", (message) => {
-			console.log("Video Chunk from Streamer, Sending to All Clients...");
+			//write the data to the video file
+			writeStream.write(message, () => {
+				console.log("Write Completed");
+			});
+
+			//send the raw data to each of the live streaming clients
 			wss.clients.forEach((item, index) => {
 				if (item.readyState == WebSocket.OPEN && item != ws) {
 					item.send(message);
 				}
 			});
+		});
+
+		//whenever the connection ends, clise the write stream to the file
+		ws.on("close", () => {
+			console.log("Connection Closed.");
+			writeStream.end();
 		});
 	});
 
@@ -40,7 +55,6 @@ app.get("/l/stream", (req, res) => {
 app.get("/l/view", (req, res) => {
 	wss.on("connection", (ws) => {
 		ws.on("message", (message) => {
-			console.log("Sending Chunk to Client...");
 			ws.send(message);
 		});
 	});
