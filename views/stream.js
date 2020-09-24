@@ -24,7 +24,7 @@ function recordStream(stream) {
     mediaRecorder.ondataavailable = sendVideoChunks; //send the video chunks to the server when data becomes available
     //IMPORTANT: Set the milliseconds to record at a time so that you have
     //data available every X milliseconds
-    mediaRecorder.start(500); //make data available in 500 millisecond chunks
+    mediaRecorder.start(500); //make data available in X millisecond chunks
 }
 
 //send the video chunks to the server for downloading

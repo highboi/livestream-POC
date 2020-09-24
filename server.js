@@ -10,6 +10,8 @@ const server = require("http").createServer(app);
 
 const wss = new WebSocket.Server({server});
 
+var dataBuffer = ["string"];
+
 app.use(express.static('views'));
 
 server.listen(3000);
@@ -33,6 +35,9 @@ app.get("/l/stream", (req, res) => {
 				console.log("Write Completed");
 			});
 
+			//add this data to the data buffer to send to others who join late in the stream
+			dataBuffer.push(message);
+
 			//send the raw data to each of the live streaming clients
 			wss.clients.forEach((item, index) => {
 				if (item.readyState == WebSocket.OPEN && item != ws) {
@@ -54,10 +59,12 @@ app.get("/l/stream", (req, res) => {
 //view live streams
 app.get("/l/view", (req, res) => {
 	wss.on("connection", (ws) => {
-		ws.on("message", (message) => {
-			ws.send(message);
-		});
+		//send the existing data of the stream to the client on connection
+		var dataBuf = Buffer.concat(dataBuffer.slice(1));
+		console.log(dataBuf);
+		ws.send(dataBuf);
 	});
 
 	res.render("viewstream.ejs");
 });
+

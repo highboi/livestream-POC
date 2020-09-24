@@ -6,6 +6,9 @@ var sourceBuffer; //global var for the source buffer
 var streamSrc = URL.createObjectURL(mediaSource); //object url for the stream
 livestream.src = streamSrc; //set the source of the live stream
 
+var finishedFillingChunks = false;
+var pendingChunks = [];
+
 //listen for the readyState change to "open" for the mediasource
 mediaSource.addEventListener("sourceopen", sourceOpened);
 
@@ -29,13 +32,13 @@ socket.onopen = (e) => {
 socket.onmessage = async (event) => {
     console.log("Message from server:");
 
-	//get the array buffer from this blob
-	var data = await event.data.arrayBuffer();
-	console.log(data);
+	console.log(typeof event.data);
+	console.log(event.data);
 
-	//if the source buffer is defined and the media source is open
+	var data = await event.data.arrayBuffer();
+
 	if (typeof sourceBuffer != 'undefined' && mediaSource.readyState == "open") {
-		//append the data to the media source
+		console.log("APPENDING BUFFER:");
 		sourceBuffer.appendBuffer(data);
 	}
 };
