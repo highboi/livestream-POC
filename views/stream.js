@@ -2,6 +2,8 @@
 var socket = new WebSocket(`ws://localhost:3000`);
 var livestream = document.getElementById("livestream");
 
+var typeSent = false;
+
 socket.onopen = (e) => {
     console.log("Connected");
 };
@@ -22,6 +24,7 @@ function recordStream(stream) {
     var options = { mimeType: "video/webm" }; //set the mime type to webm
     var mediaRecorder = new MediaRecorder(stream, options); //make a new media recorder
     mediaRecorder.ondataavailable = sendVideoChunks; //send the video chunks to the server when data becomes available
+	mediaRecorder.onstop = stopStream;
     //IMPORTANT: Set the milliseconds to record at a time so that you have
     //data available every X milliseconds
     mediaRecorder.start(500); //make data available in X millisecond chunks
@@ -39,7 +42,16 @@ async function sendVideoChunks(event) {
 	console.log(type);
 
 	//send the data
+	if (typeSent == false) {
+		socket.send(type);
+		typeSent = true;
+	}
 	socket.send(chunk);
+}
+
+//function to tell the server to stop downloading the stream
+function stopStream(event) {
+	socket.send("ended");
 }
 
 //add a video stream to the html document

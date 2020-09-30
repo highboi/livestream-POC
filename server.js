@@ -1,6 +1,7 @@
 const express = require("express");
 const WebSocket = require("ws");
 const fs = require("fs");
+const uuid = require("uuid");
 
 const app = express();
 
@@ -10,9 +11,9 @@ const server = require("http").createServer(app);
 
 const wss = new WebSocket.Server({server});
 
-var dataBuffer = ["string"];
-
 app.use(express.static('views'));
+
+var dataBuffer = [];
 
 server.listen(3000);
 
@@ -30,13 +31,15 @@ app.get("/l/stream", (req, res) => {
 		var writeStream = fs.createWriteStream("./stream.webm");
 
 		ws.on("message", (message) => {
-			//write the data to the video file
-			writeStream.write(message, () => {
-				console.log("Write Completed");
-			});
+			if (typeof message == 'object') {
+				//write the data to the video file
+				writeStream.write(message, () => {
+					console.log("Write Completed");
+				});
 
-			//add this data to the data buffer to send to others who join late in the stream
-			dataBuffer.push(message);
+				//add this data to the data buffer to send to others who join late in the stream
+				dataBuffer.push(message);
+			}
 
 			//send the raw data to each of the live streaming clients
 			wss.clients.forEach((item, index) => {
@@ -49,6 +52,11 @@ app.get("/l/stream", (req, res) => {
 		//whenever the connection ends, clise the write stream to the file
 		ws.on("close", () => {
 			console.log("Connection Closed.");
+			wss.clients.forEach((item, index) => {
+				if (item.readyState == WebSocket.OPEN && item != ws) {
+					item.send("ended");
+				}
+			});
 			writeStream.end();
 		});
 	});
@@ -60,9 +68,15 @@ app.get("/l/stream", (req, res) => {
 app.get("/l/view", (req, res) => {
 	wss.on("connection", (ws) => {
 		//send the existing data of the stream to the client on connection
-		var dataBuf = Buffer.concat(dataBuffer.slice(1));
+		var dataBuf = Buffer.concat(dataBuffer);
 		console.log(dataBuf);
 		ws.send(dataBuf);
+
+		ws.on("message", (message) => {
+			if (message == 'ended') {
+				console.log("Stream Ended");
+			}
+		});
 	});
 
 	res.render("viewstream.ejs");
