@@ -20,6 +20,20 @@ function sourceOpened() {
 	sourceBuffer = mediaSource.addSourceBuffer("video/webm; codecs=\"opus, vp8\"");
 }
 
+//function to update the seekable time of the video
+function setTime() {
+	//set the time to the latest seekable time
+	livestream.currentTime = livestream.seekable.end(0);
+
+	//if the video is playing, then set a timeout for 10 seconds to update the stream,
+	//if the video is paused, then set a timeout for one second to constantly update the stream
+	if (livestream.currentTime > 0 && !livestream.paused && !livestream.ended) {
+		setTimeout(setTime, 10000);
+	} else if (livestream.paused) {
+		setTimeout(setTime, 1000);
+	}
+}
+
 //message that lets us know that the socket connected
 socket.onopen = (e) => {
     console.log("Connection Established");
@@ -32,10 +46,9 @@ socket.onmessage = async (event) => {
 	console.log(typeof event.data);
 	console.log(event.data);
 
-	//set the time to be approximately live and play the video (once)
+	//set off the setTime function to update the livestream's seekable time
 	if (timeSet == false && sourceBuffer.buffered.length != 0) {
-		livestream.currentTime = livestream.seekable.end(0);
-		livestream.play();
+		setTime();
 		timeSet = true;
 	}
 
